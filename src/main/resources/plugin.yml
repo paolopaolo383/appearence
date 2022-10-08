@@ -1,0 +1,10 @@
+name: Appearence
+version: ${project.version}
+main: appearence.appearence.Appearence
+api-version: 1.19
+authors: [ 481926paolo ]
+description: this is a plugin that change weapon's appearence.
+website: https://yejunscoding.tistory.com/
+commands:
+  외형:
+    usage: /외형
