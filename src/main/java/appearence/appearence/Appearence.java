@@ -1,14 +1,24 @@
 package appearence.appearence;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Slime;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -21,20 +31,87 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
+import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
+
+
+
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import static org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES;
 
 public final class Appearence extends JavaPlugin implements Listener, CommandExecutor {
+    ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
+
+    public List<Material> materials = Arrays.asList(Material.DIAMOND_AXE,Material.DIAMOND_HOE,Material.DIAMOND_PICKAXE,Material.DIAMOND_SWORD);
+    //public List<String> materiallist =null;
     public HashMap<UUID, Inventory> inv = new HashMap<UUID, Inventory>();
     ConsoleCommandSender consol = Bukkit.getConsoleSender();
+
     @Override
     public void onEnable()
     {
         getServer().getPluginManager().registerEvents(this, this);
+        //saveConfig();
+        //File cfile = new File(getDataFolder(), "config.yml");
+        //if (cfile.length() == 0)
+        //{
+        //    getConfig().options().copyDefaults(true);
+        //    saveConfig();
+//
+        //}
+
+        //materiallist = getConfig().getStringList("외형변경 가능한 무기");
+        //for(int i = 0;i<materiallist.size();i++)
+        //{
+            //consol.sendMessage(materiallist.get(i));
+            //materials.add(Material.valueOf(materiallist.get(i)));
+        //}
+        manager.addPacketListener(new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Client.USE_ENTITY) {
+            @Override
+            public void onPacketReceiving(PacketEvent e) {
+
+                Player p = e.getPlayer();
+                PacketContainer packet = e.getPacket();
+                int id = packet.getIntegers().read(0);
+
+                if (.tutorialnpc.getId() == id) {
+                    if (packet.getEntityUseActions().read(0) != EnumWrappers.EntityUseAction.ATTACK) {
+
+                        p.sendMessage("pog");
+
+                    }
+                }
+
+
+            }
+        });
+        manager.addPacketListener(new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Client.USE_ENTITY) {
+            @Override
+            public void onPacketReceiving(PacketEvent e) {
+
+                Player p = e.getPlayer();
+                PacketContainer packet = e.getPacket();
+                int id = packet.getIntegers().read(0);
+
+                if (.tutorialnpc.getId() == id) {
+                    if (packet.getEntityUseActions().read(0) != EnumWrappers.EntityUseAction.ATTACK) {
+
+                        p.sendMessage("pog");
+
+                    }
+                }
+
+
+            }
+        });
     }
 
     @Override
@@ -79,8 +156,10 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
             //consol.sendMessage(ChatColor.AQUA+"[Hypixel] 월드 생성중");
             Player player = (Player) sender;
             player.getInventory().addItem(createGuiItem(Material.ANVIL,"외형변경권"));
-
-
+            ItemStack itemStack = createUIitem(Material.DIAMOND_PICKAXE,"외형으로 쓰일 무기(?)", (short)50,"t","h","i","s","is lore");
+            ItemStack item = createGuiItem(Material.DIAMOND_PICKAXE,"기능으로 쓰일 무기","무기임","암튼 무기임");
+            player.getInventory().addItem(item);
+            player.getInventory().addItem(itemStack);
         }
         return true;
     }
@@ -94,15 +173,15 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
 
     public void initializeItems(UUID uuid) {
         inv.get(uuid).clear();
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short) 50,"menu"));
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)50,"menu"));
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)50,"input1"));///
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)50,"menu"));
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)50,"input2"));///
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)50,"menu"));
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)50,"output"));///
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)50,"menu"));
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)50,"menu"));
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"menu"));
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"menu"));
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"input1"));///
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"menu"));
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"input2"));///
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"menu"));
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"output"));///
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"menu"));
+        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3,"menu"));
 
 
     }
@@ -136,7 +215,12 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         return item;
     }
     public ItemStack combine(final ItemStack a,final ItemStack b) {
-        return b;
+        ItemStack item = new ItemStack(a.getType(), 1);
+        item.setDurability(a.getDurability());
+
+
+        item.setItemMeta(b.getItemMeta());
+        return item;
     }
     public void openInventory(final HumanEntity ent) {
         initializeItems(ent.getUniqueId());
@@ -147,16 +231,23 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     {
         if(!in.getItem(2).getType().equals(Material.IRON_AXE)&&!in.getItem(4).getType().equals(Material.IRON_AXE))
         {
-            in.setItem(6,combine(in.getItem(2),in.getItem(4)));
+            if(in.getItem(2).getType().equals(in.getItem(4).getType()))
+            {
+                if(materials.contains(in.getItem(2).getType()))
+                {
+                    in.setItem(6,combine(in.getItem(2),in.getItem(4)));
+                    return;
+                }
+            }
         }
-        else
-        {
-            in.setItem(6,createUIitem(Material.IRON_AXE, " ", (short)50,"output"));
-        }
+        in.setItem(6,createUIitem(Material.IRON_AXE, " ", (short)3,"output"));
+
     }
+
     @EventHandler
     public void onInventoryClosed(InventoryCloseEvent e)
     {
+
         Player p = (Player) e.getPlayer();
         if(!inv.get(p.getUniqueId()).getItem(8).getType().equals(Material.IRON_AXE))
             return;
@@ -222,7 +313,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 {//아이템이 커서로 오고 인벤토리에 공백 아이템이 오게하고 스왑 아이템
                     e.setCancelled(true);
                     e.setCursor(e.getCurrentItem());
-                    e.getInventory().setItem(2,createUIitem(Material.IRON_AXE, " ", (short)50,"input1"));
+                    e.getInventory().setItem(2,createUIitem(Material.IRON_AXE, " ", (short)3,"input1"));
                     swapitem(e.getClickedInventory());
                 }
                 else
@@ -265,7 +356,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 {
                     e.setCancelled(true);
                     e.setCursor(e.getCurrentItem());
-                    e.getInventory().setItem(4,createUIitem(Material.IRON_AXE, " ", (short)50,"input2"));
+                    e.getInventory().setItem(4,createUIitem(Material.IRON_AXE, " ", (short)3,"input2"));
                     swapitem(e.getClickedInventory());
                 }
                 else
@@ -282,12 +373,14 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         }
         else if(e.getRawSlot()==6&&!e.getCurrentItem().getType().equals(Material.IRON_AXE))
         {
-            initializeItems(p.getUniqueId());
+
             p.getInventory().addItem(e.getClickedInventory().getItem(6));
 
             p.getInventory().removeItem(createGuiItem(Material.ANVIL,"외형변경권"));
             //외형변경권 없애기
+            initializeItems(p.getUniqueId());
             p.closeInventory();
+
         }
         else
         {
@@ -296,6 +389,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         //2 4 6
 
     }
+
 
 }
 
@@ -343,35 +437,3 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//https://monsnode.com/search.php?search=%EC%9E%90%EC%9C%84
