@@ -8,3 +8,5 @@ website: https://yejunscoding.tistory.com/
 commands:
   외형:
     usage: /외형
+  외형변경권:
+    usage: /외형변경권
