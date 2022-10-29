@@ -27,7 +27,7 @@ import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
 
 
-import java.io.File;
+import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +36,9 @@ import java.util.UUID;
 import static org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES;
 
 public final class Appearence extends JavaPlugin implements Listener, CommandExecutor {
+
+    public List<String> items = null;
+
     public int product = 13;
     public int first = 29;
     public int second = 33;
@@ -44,6 +47,27 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     //public List<String> materiallist =null;
     public HashMap<UUID, Inventory> inv = new HashMap<UUID, Inventory>();
     ConsoleCommandSender consol = Bukkit.getConsoleSender();
+
+    public void rii() throws IOException {//recieve item information by google spreed sheet
+        BufferedReader reader = new BufferedReader(
+                new FileReader("d:\\file.txt")
+        );
+
+        String str;
+        Material a = Material.DIAMOND_SWORD;
+        while ((str = reader.readLine()) != null)
+        {
+            try
+            {
+                a=Material.valueOf(str);
+            }
+            catch (Exception e)
+            {
+                items.add(a.toString()+"/"+str); //메테리얼/이름/내구도
+            }
+        }
+
+    }
     @Override
     public void onEnable()
     {
