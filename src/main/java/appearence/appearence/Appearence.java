@@ -37,34 +37,47 @@ import static org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES;
 
 public final class Appearence extends JavaPlugin implements Listener, CommandExecutor {
 
-    public List<String> items = null;
-
-    public int product = 13;
-    public int first = 29;
-    public int second = 33;
+    public HashMap<String, String> items = new HashMap<String,String>();
+    public int product = 4;
+    public int first = 20;
+    public int second = 24;
     public String appearencenpcname = "[외형변경]사연";
-    public List<Material> materials = Arrays.asList(Material.DIAMOND_AXE,Material.DIAMOND_HOE,Material.DIAMOND_PICKAXE,Material.DIAMOND_SWORD);
-    //public List<String> materiallist =null;
+        //public List<String> materiallist =null;
     public HashMap<UUID, Inventory> inv = new HashMap<UUID, Inventory>();
     ConsoleCommandSender consol = Bukkit.getConsoleSender();
 
     public void rii() throws IOException {//recieve item information by google spreed sheet
+        items = null;
         BufferedReader reader = new BufferedReader(
-                new FileReader("d:\\file.txt")
+                new FileReader("c:\\\\items.txt")
         );
-
         String str;
-        Material a = Material.DIAMOND_SWORD;
+        Material a = Material.DIAMOND_AXE;
+        Material b=Material.DIAMOND_AXE;
         while ((str = reader.readLine()) != null)
         {
             try
             {
                 a=Material.valueOf(str);
+                b=a;
             }
-            catch (Exception e)
+            catch(Exception e)
             {
-                items.add(a.toString()+"/"+str); //메테리얼/이름/내구도
+                a=null;
             }
+            if(a==null)
+            {
+                String[] str2 = str.split("/");
+                items.put("a","b");//str.split("/")[0],b.toString()+"/"+str2[1]
+                consol.sendMessage(str.split("/")[0]);
+
+            }
+            else
+            {
+                consol.sendMessage(str);
+            }
+
+
         }
 
     }
@@ -72,6 +85,22 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     public void onEnable()
     {
         getServer().getPluginManager().registerEvents(this, this);
+
+        File file = new File("c:\\\\items.txt");
+
+        if (!file.exists()) {
+            try {
+
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            rii();
+        } catch (IOException e) {
+
+        }
         //saveConfig();
         //File cfile = new File(getDataFolder(), "config.yml");
         //if (cfile.length() == 0)
@@ -102,13 +131,22 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         {
             ItemStack item = new ItemStack(Material.PAPER,1);
             ItemMeta itemm = item.getItemMeta();
-            itemm.setLore(Arrays.asList(String.valueOf(player.getInventory().getItemInMainHand().getDurability()), String.valueOf(player.getInventory().getItemInMainHand().getType())));
+            itemm.setDisplayName("외형변경권<"+player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()+">");
             item.setItemMeta(itemm);
+
             player.getInventory().addItem(item);
         }
         if(command.getName().equalsIgnoreCase("외형"))
         {
             openInventory(player);
+        }
+        if(player.getName().equalsIgnoreCase("Geune")&&command.getName().equalsIgnoreCase("아이템받기"))
+        {
+            try {
+                rii();
+            } catch (IOException e) {
+
+            }
         }
         return true;
     }
@@ -130,27 +168,12 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         inv.get(uuid).clear();
         ItemStack green = new ItemStack(Material.IRON_BLOCK,1);
         ItemStack red = new ItemStack(Material.BARRIER,1);
-        for(int i = 0;i<product;i++)
-            inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)64));
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3));
-        for(int i = (product+1);i<first;i++)
-            inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)64));
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3));
-        for(int i = (first+1);i<second;i++)
-            inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)64));
-        inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)3));///
-        for(int i = (second+1);i<54;i++)
+        for(int i = 0;i<54;i++)
             inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)64));
 
         inv.get(uuid).setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
     }
 
-
-    @EventHandler
-    public void playerqevent(PlayerDropItemEvent e)
-    {
-
-    }
     protected ItemStack createUIitem(final Material material, final String name,final short damage, final String... lore) {
         final ItemStack item = new ItemStack(material, 1,damage);
         final ItemMeta meta = item.getItemMeta();
@@ -185,7 +208,8 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     }
     public ItemStack combine(final ItemStack a,final ItemStack b) {
         ItemStack item = new ItemStack(Material.valueOf(a.getItemMeta().getLore().get(1)), 1);
-        item.setDurability(Short.valueOf(a.getItemMeta().getLore().get(0)));
+        String name = a.getItemMeta().getDisplayName().split("<")[1].split(">")[0];
+        item.setDurability(Short.valueOf(getiteminformation(name).split("/")[1]));
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(b.getItemMeta().getDisplayName());
         meta.setLore(b.getItemMeta().getLore());
@@ -198,40 +222,43 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     {
         if(in.getItem(first).getType().equals(Material.PAPER)&&!in.getItem(second).getType().equals(Material.IRON_AXE))
         {
+            String name = in.getItem(first).getItemMeta().getDisplayName().split("<")[1].split(">")[0];
             Material ap;
             try
             {
-                ap = Material.valueOf(in.getItem(first).getItemMeta().getLore().get(1));
+                ap = Material.valueOf(getiteminformation(name).split("/")[0]);
             }
             catch (Exception e)
             {
-                in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)3));
+                in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
                 in.setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
                 return false;
             }
-            if(materials.contains(ap)&&materials.contains(in.getItem(second).getType()))
+            if(ap==in.getItem(second).getType())
             {
                 try
                 {
                     in.setItem(product,combine(in.getItem(first),in.getItem(second)));
                     in.setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)3));
                     return true;
-
                 }
                 catch (Exception e)
                 {
-                    in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)3));
+                    in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
                     in.setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
                     return false;
                 }
 
             }
         }
-        in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)3));
+        in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
         in.setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
         return false;
     }
-
+    public String getiteminformation(String name)
+    {
+        return items.get(name);
+    }
     @EventHandler
     public void onInventoryClosed(InventoryCloseEvent e)
     {
@@ -306,7 +333,8 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 {//아이템이 커서로 오고 인벤토리에 공백 아이템이 오게하고 스왑 아이템
                     e.setCancelled(true);
                     e.setCursor(e.getCurrentItem());
-                    e.getInventory().setItem(first,createUIitem(Material.IRON_AXE, " ", (short)3));
+                    e.getInventory().setItem(first,createUIitem(Material.IRON_AXE, " ", (short)64));
+                    e.getInventory().setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
                     swapitem(e.getClickedInventory());
                 }
                 else
@@ -350,7 +378,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 {
                     e.setCancelled(true);
                     e.setCursor(e.getCurrentItem());
-                    e.getInventory().setItem(second,createUIitem(Material.IRON_AXE, " ", (short)3));
+                    e.getInventory().setItem(second,createUIitem(Material.IRON_AXE, " ", (short)64));
                     swapitem(e.getClickedInventory());
                 }
                 else
@@ -389,48 +417,3 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
