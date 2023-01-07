@@ -1,5 +1,6 @@
 package appearence.appearence;
 
+import com.mojang.authlib.GameProfile;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
@@ -42,12 +43,11 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     public int first = 20;
     public int second = 24;
     public String appearencenpcname = "[외형변경]사연";
-        //public List<String> materiallist =null;
+    public List<String> materiallist =null;
     public HashMap<UUID, Inventory> inv = new HashMap<UUID, Inventory>();
     ConsoleCommandSender consol = Bukkit.getConsoleSender();
 
     public void rii() throws IOException {//recieve item information by google spreed sheet
-        items = null;
         BufferedReader reader = new BufferedReader(
                 new FileReader("c:\\\\items.txt")
         );
@@ -85,9 +85,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     public void onEnable()
     {
         getServer().getPluginManager().registerEvents(this, this);
-
         File file = new File("c:\\\\items.txt");
-
         if (!file.exists()) {
             try {
 
@@ -101,21 +99,21 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         } catch (IOException e) {
 
         }
-        //saveConfig();
-        //File cfile = new File(getDataFolder(), "config.yml");
-        //if (cfile.length() == 0)
-        //{
-        //    getConfig().options().copyDefaults(true);
-        //    saveConfig();
-//
-        //}
+        saveDefaultConfig();
+        File cfile = new File(getDataFolder(), "config.yml");
+        if (cfile.length() == 0)
+        {
+            getConfig().options().copyDefaults(true);
+            saveConfig();
 
-        //materiallist = getConfig().getStringList("외형변경 가능한 무기");
-        //for(int i = 0;i<materiallist.size();i++)
-        //{
-            //consol.sendMessage(materiallist.get(i));
+        }
+
+        materiallist = getConfig().getStringList("외형변경 가능한 무기");
+        for(int i = 0;i<materiallist.size();i++)
+        {
+            consol.sendMessage(materiallist.get(i));
             //materials.add(Material.valueOf(materiallist.get(i)));
-        //}
+        }
 
 
     }
