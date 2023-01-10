@@ -10,5 +10,5 @@ commands:
     usage: /외형
   외형변경권:
     usage: /외형변경권
-  아이템받기:
-    usage: /아이템받기
+  무기로드:
+    usage: /무기로드

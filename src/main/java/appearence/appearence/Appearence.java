@@ -7,6 +7,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -29,92 +31,91 @@ import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
 
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES;
 
 public final class Appearence extends JavaPlugin implements Listener, CommandExecutor {
-
-    public HashMap<String, String> items = new HashMap<String,String>();
+    public HashMap<String, Material> Mitems = new HashMap<String,Material>();
+    public HashMap<String, Short> items = new HashMap<String,Short>();
     public int product = 4;
-    public int first = 20;
-    public int second = 24;
+    public int first = 38;//변경권
+    public int second = 42;//무기
     public String appearencenpcname = "[외형변경]사연";
-    public List<String> materiallist =null;
     public HashMap<UUID, Inventory> inv = new HashMap<UUID, Inventory>();
     ConsoleCommandSender consol = Bukkit.getConsoleSender();
 
-    public void rii() throws IOException {//recieve item information by google spreed sheet
-        BufferedReader reader = new BufferedReader(
-                new FileReader("c:\\\\items.txt")
-        );
-        String str;
-        Material a = Material.DIAMOND_AXE;
-        Material b=Material.DIAMOND_AXE;
-        while ((str = reader.readLine()) != null)
-        {
-            try
-            {
-                a=Material.valueOf(str);
-                b=a;
-            }
-            catch(Exception e)
-            {
-                a=null;
-            }
-            if(a==null)
-            {
-                String[] str2 = str.split("/");
-                items.put("a","b");//str.split("/")[0],b.toString()+"/"+str2[1]
-                consol.sendMessage(str.split("/")[0]);
-
-            }
-            else
-            {
-                consol.sendMessage(str);
-            }
-
-
-        }
-
-    }
     @Override
     public void onEnable()
     {
         getServer().getPluginManager().registerEvents(this, this);
-        File file = new File("c:\\\\items.txt");
-        if (!file.exists()) {
-            try {
 
-                file.createNewFile();
+        reloadconfig();
+    }
+    public void reloadconfig()
+    {
+        items.clear();
+        Mitems.clear();
+        File pluginfile = new File("plugins","appearence.jar");
+        consol.sendMessage(pluginfile.getAbsolutePath().split("appearence.jar")[0]+"Appearence");
+        String folderpath = pluginfile.getAbsolutePath().split("appearence.jar")[0]+"Appearence";
+        File Folder = new File(folderpath);
+        if (!Folder.exists()) {
+            try{
+                Folder.mkdir(); //폴더 생성합니다.
+                System.out.println("[Appearence]폴더가 생성되었습니다.");
+            }
+            catch(Exception e){
+                e.getStackTrace();
+            }
+        }
+        String Filepath = folderpath+"\\weapon.yml";
+        File cffile = new File(Filepath);
+        if (!cffile.exists()) {	// 파일이 존재하지 않으면 생성
+            try {
+                if (cffile.createNewFile())
+                    System.out.println("[weapon.yml]파일 생성 성공");
+                else
+                    System.out.println("[weapon.yml]파일 생성 실패");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        try {
-            rii();
-        } catch (IOException e) {
-
+        File file = new File("plugins/Appearence", "weapon.yml");
+        FileConfiguration cnf = YamlConfiguration.loadConfiguration(file);
+        consol.sendMessage(ChatColor.YELLOW+"---------------무기 로드---------------");
+        if(cnf.contains("weapon")){
+            //consol.sendMessage("File exist");
+        }else{
+            //consol.sendMessage("File doesnt exist");
+            String[] list = {"example1/DIAMOND_SWORD/100", "example/DIAMOND_SWORD/100"};
+            cnf.set("weapon", list);
+            try {
+                cnf.save(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //consol.sendMessage("Created");
         }
-        saveDefaultConfig();
-        File cfile = new File(getDataFolder(), "config.yml");
-        if (cfile.length() == 0)
+        List<String> weapons = (List<String>) cnf.getList("weapon");
+        for(String weapon: weapons)
         {
-            getConfig().options().copyDefaults(true);
-            saveConfig();
+            try
+            {
+                String itemname = weapon.split("/")[0];
+                Material itemmaterial = Material.valueOf(weapon.split("/")[1]);
+                Short itemdurability = Short.valueOf(weapon.split("/")[2]);
+                items.put(itemname,itemdurability);
+                Mitems.put(itemname,itemmaterial);
+                consol.sendMessage(ChatColor.BLUE+itemname+"이 로드됨");
+            }
+            catch (Exception e)
+            {
+                consol.sendMessage(ChatColor.RED+weapon+"이 로드되지 않음");
+            }
 
         }
-
-        materiallist = getConfig().getStringList("외형변경 가능한 무기");
-        for(int i = 0;i<materiallist.size();i++)
-        {
-            consol.sendMessage(materiallist.get(i));
-            //materials.add(Material.valueOf(materiallist.get(i)));
-        }
-
+        consol.sendMessage(ChatColor.YELLOW+"---------------로드 완료---------------");
 
     }
     @Override
@@ -125,11 +126,11 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         {
             return true;
         }
-        if(player.getName().equalsIgnoreCase("Geune")&&command.getName().equalsIgnoreCase("외형변경권"))
+        if((player.getName().equalsIgnoreCase("Geune")||player.getName().equalsIgnoreCase("LastPieceOfLife"))&&command.getName().equalsIgnoreCase("외형변경권"))
         {
             ItemStack item = new ItemStack(Material.PAPER,1);
             ItemMeta itemm = item.getItemMeta();
-            itemm.setDisplayName("외형변경권<"+player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()+">");
+            itemm.setDisplayName(ChatColor.getLastColors(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+"외형변경권<"+ChatColor.stripColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+">");
             item.setItemMeta(itemm);
 
             player.getInventory().addItem(item);
@@ -138,13 +139,9 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         {
             openInventory(player);
         }
-        if(player.getName().equalsIgnoreCase("Geune")&&command.getName().equalsIgnoreCase("아이템받기"))
+        if(command.getName().equalsIgnoreCase("무기로드"))
         {
-            try {
-                rii();
-            } catch (IOException e) {
-
-            }
+            reloadconfig();
         }
         return true;
     }
@@ -169,7 +166,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         for(int i = 0;i<54;i++)
             inv.get(uuid).addItem(createUIitem(Material.IRON_AXE, " ", (short)64));
 
-        inv.get(uuid).setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
+        inv.get(uuid).setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
     }
 
     protected ItemStack createUIitem(final Material material, final String name,final short damage, final String... lore) {
@@ -205,57 +202,61 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
 
     }
     public ItemStack combine(final ItemStack a,final ItemStack b) {
-        ItemStack item = new ItemStack(Material.valueOf(a.getItemMeta().getLore().get(1)), 1);
-        String name = a.getItemMeta().getDisplayName().split("<")[1].split(">")[0];
-        item.setDurability(Short.valueOf(getiteminformation(name).split("/")[1]));
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(b.getItemMeta().getDisplayName());
-        meta.setLore(b.getItemMeta().getLore());
-        meta.addItemFlags(HIDE_ATTRIBUTES);
-        meta.setUnbreakable(true);
-        item.setItemMeta(meta);
+        String name = ChatColor.stripColor(a.getItemMeta().getDisplayName()).split("<")[1].split(">")[0];
+        ItemStack item = b;
+        item.setDurability(getitemdurability(name));
         return item;
     }
     public boolean swapitem(Inventory in)
     {
         if(in.getItem(first).getType().equals(Material.PAPER)&&!in.getItem(second).getType().equals(Material.IRON_AXE))
         {
-            String name = in.getItem(first).getItemMeta().getDisplayName().split("<")[1].split(">")[0];
-            Material ap;
+            String name;
             try
             {
-                ap = Material.valueOf(getiteminformation(name).split("/")[0]);
+                name =ChatColor.stripColor(in.getItem(first).getItemMeta().getDisplayName().split("<")[1].split(">")[0]);
+                if(!items.containsKey(name)||!Mitems.containsKey(name))
+                {
+                    in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
+                    in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
+                    return false;
+                }
             }
             catch (Exception e)
             {
                 in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
-                in.setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
+                in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
                 return false;
             }
-            if(ap==in.getItem(second).getType())
+
+            try
             {
-                try
+                if(Mitems.get(name)==in.getItem(second).getType())
                 {
                     in.setItem(product,combine(in.getItem(first),in.getItem(second)));
-                    in.setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)3));
+                    in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)3));
                     return true;
-                }
-                catch (Exception e)
-                {
-                    in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
-                    in.setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
-                    return false;
                 }
 
             }
+            catch (Exception e)
+            {
+                in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
+                in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
+                return false;
+            }
         }
         in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
-        in.setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
+        in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
         return false;
     }
-    public String getiteminformation(String name)
+    public Short getitemdurability(String name)
     {
         return items.get(name);
+    }
+    public Material getitemmaterial(String name)
+    {
+        return Mitems.get(name);
     }
     @EventHandler
     public void onInventoryClosed(InventoryCloseEvent e)
@@ -332,7 +333,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                     e.setCancelled(true);
                     e.setCursor(e.getCurrentItem());
                     e.getInventory().setItem(first,createUIitem(Material.IRON_AXE, " ", (short)64));
-                    e.getInventory().setItem(product+9,createUIitem(Material.IRON_AXE, " ", (short)2));
+                    e.getInventory().setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
                     swapitem(e.getClickedInventory());
                 }
                 else
