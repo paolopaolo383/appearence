@@ -38,6 +38,7 @@ import static org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES;
 public final class Appearence extends JavaPlugin implements Listener, CommandExecutor {
     public HashMap<String, Material> Mitems = new HashMap<String,Material>();
     public HashMap<String, Short> items = new HashMap<String,Short>();
+    public HashMap<String, String> enitems = new HashMap<String,String>();
     public int product = 4;
     public int first = 38;//변경권
     public int second = 42;//무기
@@ -51,9 +52,15 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         getServer().getPluginManager().registerEvents(this, this);
 
         reloadconfig();
+        for(Player player : getServer().getOnlinePlayers())
+        {
+            inv.put(player.getUniqueId(),Bukkit.createInventory(null, 54, "combine"));
+            initializeItems(player.getUniqueId());
+        }
     }
     public void reloadconfig()
     {
+        enitems.clear();
         items.clear();
         Mitems.clear();
         File pluginfile = new File("plugins","appearence.jar");
@@ -88,7 +95,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
             //consol.sendMessage("File exist");
         }else{
             //consol.sendMessage("File doesnt exist");
-            String[] list = {"example1/DIAMOND_SWORD/100", "example/DIAMOND_SWORD/100"};
+            String[] list = {"(보이는 이름)/DIAMOND_SWORD/100/(영어이름)", "(보이는 이름)/DIAMOND_SWORD/100/(영어이름)"};
             cnf.set("weapon", list);
             try {
                 cnf.save(file);
@@ -108,6 +115,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                     String itemname = weapon.split("/")[0];
                     Material itemmaterial = Material.valueOf(weapon.split("/")[1]);
                     Short itemdurability = Short.valueOf(weapon.split("/")[2]);
+                    String itemenname = String.valueOf(weapon.split("/")[3]);
                     items.put(itemname,itemdurability);
                     Mitems.put(itemname,itemmaterial);
                     consol.sendMessage(ChatColor.BLUE+itemname+"이 로드됨");
@@ -138,6 +146,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         {
             ItemStack item = new ItemStack(Material.PAPER,1);
             ItemMeta itemm = item.getItemMeta();
+            itemm.setLocalizedName(ChatColor.getLastColors(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+"외형변경권<"+ChatColor.stripColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+">");
             itemm.setDisplayName(ChatColor.getLastColors(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+"외형변경권<"+ChatColor.stripColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+">");
             item.setItemMeta(itemm);
 
@@ -239,7 +248,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
 
             try
             {
-                if(Mitems.get(name)==in.getItem(second).getType())
+                if(getitemmaterial(name)==in.getItem(second).getType())
                 {
                     in.setItem(product,combine(in.getItem(first),in.getItem(second)));
                     in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)3));
@@ -271,8 +280,8 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     {
 
         Player p = (Player) e.getPlayer();
-        if(!inv.get(p.getUniqueId()).getItem(8).getType().equals(Material.IRON_AXE))
-            return;
+
+
         if(!inv.get(p.getUniqueId()).getItem(first).getType().equals(Material.IRON_AXE))
         {
             p.getInventory().addItem(inv.get(p.getUniqueId()).getItem(first));
@@ -285,21 +294,9 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         initializeItems(p.getUniqueId());
     }
     @EventHandler
-    public void onInventoryItemMove(InventoryMoveItemEvent e)
-    {
-        if(e.getDestination().getItem(8).getType().equals(Material.IRON_AXE))
-        {
-            e.setCancelled(true);
-        }
-        if(e.getInitiator().getItem(8).getType().equals(Material.IRON_AXE))
-        {
-            e.setCancelled(true);
-        }
-    }
-    @EventHandler
     public void onInventoryClick(final InventoryClickEvent e) {
         try {
-            if (!e.getClickedInventory().equals(inv.get(e.getWhoClicked().getUniqueId()))) return;
+            if (!e.getInventory().equals(inv.get(e.getWhoClicked().getUniqueId()))) return;
         }
         catch (Exception ee)
         {
@@ -313,7 +310,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         Boolean a=false;
         Boolean b = false;
         final Player p = (Player) e.getWhoClicked();
-        ItemMeta itemmeta  =  e.getCurrentItem().getItemMeta();
+
         if(e.getRawSlot()==first)
         {
 
@@ -329,7 +326,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                     e.getInventory().setItem(first,e.getCursor());
                     e.setCursor(new ItemStack(Material.AIR));
 
-                    a=swapitem(e.getClickedInventory());
+                    a=swapitem(e.getInventory());
                     p.getWorld().playSound(p.getLocation(),Sound.ITEM_BOTTLE_FILL_DRAGONBREATH,2,0.5f);
 
                 }
@@ -342,7 +339,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                     e.setCursor(e.getCurrentItem());
                     e.getInventory().setItem(first,createUIitem(Material.IRON_AXE, " ", (short)64));
                     e.getInventory().setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
-                    swapitem(e.getClickedInventory());
+                    swapitem(e.getInventory());
                 }
                 else
                 {
@@ -351,7 +348,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
 
                     e.setCursor(e.getCurrentItem());
                     e.getInventory().setItem(first,temp);
-                    a=swapitem(e.getClickedInventory());
+                    a=swapitem(e.getInventory());
                     p.getWorld().playSound(p.getLocation(),Sound.ITEM_BOTTLE_FILL_DRAGONBREATH,2,0.5f);
                 }
             }
@@ -374,7 +371,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                     e.setCancelled(true);
                     e.getInventory().setItem(second,e.getCursor());
                     e.setCursor(new ItemStack(Material.AIR));
-                    b=swapitem(e.getClickedInventory());
+                    b=swapitem(e.getInventory());
                     p.getWorld().playSound(p.getLocation(),Sound.ITEM_BOTTLE_FILL_DRAGONBREATH,2,0.5f);
 
                 }
@@ -386,7 +383,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                     e.setCancelled(true);
                     e.setCursor(e.getCurrentItem());
                     e.getInventory().setItem(second,createUIitem(Material.IRON_AXE, " ", (short)64));
-                    swapitem(e.getClickedInventory());
+                    swapitem(e.getInventory());
                 }
                 else
                 {
@@ -395,7 +392,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
 
                     e.setCursor(e.getCurrentItem());
                     e.getInventory().setItem(second,temp);
-                    b=swapitem(e.getClickedInventory());
+                    b=swapitem(e.getInventory());
                     p.getWorld().playSound(p.getLocation(),Sound.ITEM_BOTTLE_FILL_DRAGONBREATH,2,0.5f);
                 }
             }
@@ -403,7 +400,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         else if(e.getRawSlot()==product&&!e.getCurrentItem().getType().equals(Material.IRON_AXE))
         {
 
-            p.getInventory().addItem(e.getClickedInventory().getItem(product));
+            p.getInventory().addItem(e.getInventory().getItem(product));
 
             //외형변경권 없애기
             initializeItems(p.getUniqueId());
