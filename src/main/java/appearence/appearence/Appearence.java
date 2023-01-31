@@ -97,31 +97,23 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
             }
             //consol.sendMessage("Created");
         }
-
         List<String> weapons = (List<String>) cnf.getList("weapon");
-        if(!weapons.isEmpty())
+        for(String weapon: weapons)
         {
-            for(String weapon: weapons)
+            try
             {
-                try
-                {
-                    String itemname = weapon.split("/")[0];
-                    Material itemmaterial = Material.valueOf(weapon.split("/")[1]);
-                    Short itemdurability = Short.valueOf(weapon.split("/")[2]);
-                    items.put(itemname,itemdurability);
-                    Mitems.put(itemname,itemmaterial);
-                    consol.sendMessage(ChatColor.BLUE+itemname+"이 로드됨");
-                }
-                catch (Exception e)
-                {
-                    consol.sendMessage(ChatColor.RED+weapon+"이 로드되지 않음");
-                }
-
+                String itemname = weapon.split("/")[0];
+                Material itemmaterial = Material.valueOf(weapon.split("/")[1]);
+                Short itemdurability = Short.valueOf(weapon.split("/")[2]);
+                items.put(itemname,itemdurability);
+                Mitems.put(itemname,itemmaterial);
+                consol.sendMessage(ChatColor.BLUE+itemname+"이 로드됨");
             }
-        }
-        else
-        {
-            consol.sendMessage(ChatColor.YELLOW+"로드할 무기가 없음");
+            catch (Exception e)
+            {
+                consol.sendMessage(ChatColor.RED+weapon+"이 로드되지 않음");
+            }
+
         }
         consol.sendMessage(ChatColor.YELLOW+"---------------로드 완료---------------");
 
