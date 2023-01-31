@@ -1,6 +1,5 @@
 package appearence.appearence;
 
-import com.mojang.authlib.GameProfile;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
@@ -24,10 +23,6 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
-import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
 
 
 import java.io.*;
@@ -146,6 +141,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         {
             ItemStack item = new ItemStack(Material.PAPER,1);
             ItemMeta itemm = item.getItemMeta();
+
             itemm.setLocalizedName(ChatColor.getLastColors(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+"외형변경권<"+ChatColor.stripColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+">");
             itemm.setDisplayName(ChatColor.getLastColors(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+"외형변경권<"+ChatColor.stripColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName())+">");
             item.setItemMeta(itemm);
@@ -220,12 +216,17 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
     }
     public ItemStack combine(final ItemStack a,final ItemStack b) {
         String name = ChatColor.stripColor(a.getItemMeta().getDisplayName()).split("<")[1].split(">")[0];
-        ItemStack item = b;
+        ItemStack item = b.clone();
         item.setDurability(getitemdurability(name));
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setUnbreakable(true);
+
+        item.setItemMeta(itemMeta);
         return item;
     }
     public boolean swapitem(Inventory in)
     {
+
         if(in.getItem(first).getType().equals(Material.PAPER)&&!in.getItem(second).getType().equals(Material.IRON_AXE))
         {
             String name;
@@ -243,6 +244,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
             {
                 in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
                 in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
+                consol.sendMessage("1++++"+String.valueOf(in.getItem(second).getDurability()));
                 return false;
             }
 
@@ -252,6 +254,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 {
                     in.setItem(product,combine(in.getItem(first),in.getItem(second)));
                     in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)3));
+                    consol.sendMessage("2++++"+String.valueOf(in.getItem(second).getDurability()));
                     return true;
                 }
 
@@ -260,11 +263,13 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
             {
                 in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
                 in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
+                consol.sendMessage("3++++"+String.valueOf(in.getItem(second).getDurability()));
                 return false;
             }
         }
         in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
         in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
+        consol.sendMessage("4++++"+String.valueOf(in.getItem(second).getDurability()));
         return false;
     }
     public Short getitemdurability(String name)
@@ -281,11 +286,11 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
 
         Player p = (Player) e.getPlayer();
 
+        if(!e.getInventory().equals(inv.get(e.getPlayer().getUniqueId()))) return;
 
         if(!inv.get(p.getUniqueId()).getItem(first).getType().equals(Material.IRON_AXE))
         {
             p.getInventory().addItem(inv.get(p.getUniqueId()).getItem(first));
-
         }
         if(!inv.get(p.getUniqueId()).getItem(second).getType().equals(Material.IRON_AXE))
         {
@@ -294,9 +299,19 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         initializeItems(p.getUniqueId());
     }
     @EventHandler
+    public void onInventoryItemMove(InventoryDragEvent e)
+    {
+
+        if(e.getInventory().equals(inv.get(e.getWhoClicked().getUniqueId())))
+        {
+            e.setCancelled(true);
+        }
+    }
+    @EventHandler
     public void onInventoryClick(final InventoryClickEvent e) {
         try {
-            if (!e.getInventory().equals(inv.get(e.getWhoClicked().getUniqueId()))) return;
+            if(!e.getClickedInventory().getItem(53).getType().equals(Material.IRON_AXE)||!((e.getClickedInventory().getItem(53).getDurability()==(short)2)||(e.getClickedInventory().getItem(53).getDurability()==(short)3))) return;
+            if (!e.getClickedInventory().equals(inv.get(e.getWhoClicked().getUniqueId()))) return;
         }
         catch (Exception ee)
         {
@@ -307,8 +322,6 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         ItemStack green = new ItemStack(Material.IRON_BLOCK,1);
         ItemStack red = new ItemStack(Material.BARRIER,1);
 
-        Boolean a=false;
-        Boolean b = false;
         final Player p = (Player) e.getWhoClicked();
 
         if(e.getRawSlot()==first)
@@ -322,33 +335,65 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 }
                 else
                 {
-                    e.setCancelled(true);
-                    e.getInventory().setItem(first,e.getCursor());
-                    e.setCursor(new ItemStack(Material.AIR));
+                    if(!e.getCursor().getType().equals(Material.PAPER))
+                    {
+                        e.setCancelled(true);
 
-                    a=swapitem(e.getInventory());
+                    }
+                    e.setCancelled(true);
+                    ItemStack itemmmm = e.getCursor().clone();
+                    itemmmm.setAmount(1);
+                    e.getClickedInventory().setItem(first,itemmmm);
+                    if(e.getCursor().getAmount()>1)
+                    {
+                        itemmmm.setAmount(e.getCursor().getAmount()-1);
+                    }
+                    else
+                    {
+                        itemmmm = new ItemStack(Material.AIR);
+                    }
+                    e.setCursor(itemmmm);
+
+
+                    swapitem(e.getClickedInventory());
                     p.getWorld().playSound(p.getLocation(),Sound.ITEM_BOTTLE_FILL_DRAGONBREATH,2,0.5f);
 
                 }
             }
             else
             {
+
                 if(e.getCursor().getType().equals(Material.AIR))
                 {//아이템이 커서로 오고 인벤토리에 공백 아이템이 오게하고 스왑 아이템
                     e.setCancelled(true);
                     e.setCursor(e.getCurrentItem());
-                    e.getInventory().setItem(first,createUIitem(Material.IRON_AXE, " ", (short)64));
-                    e.getInventory().setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
-                    swapitem(e.getInventory());
+                    e.getClickedInventory().setItem(first,createUIitem(Material.IRON_AXE, " ", (short)64));
+                    e.getClickedInventory().setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
+                    swapitem(e.getClickedInventory());
                 }
                 else
                 {
+                    if(!e.getCursor().getType().equals(Material.PAPER))
+                    {
+                        e.setCancelled(true);
+                    }
                     e.setCancelled(true);
-                    ItemStack temp = e.getCursor();
+                    ItemStack temp = e.getCursor().clone();
+                    temp.setAmount(1);
+                    e.getInventory().addItem(e.getCurrentItem());
+                    e.getClickedInventory().setItem(first,temp);
+                    if(e.getCursor().getAmount()>1)
+                    {
+                        temp.setAmount(e.getCursor().getAmount()-1);
+                    }
+                    else
+                    {
+                        temp = new ItemStack(Material.AIR);
+                    }
+                    e.setCursor(temp);
 
-                    e.setCursor(e.getCurrentItem());
-                    e.getInventory().setItem(first,temp);
-                    a=swapitem(e.getInventory());
+
+                    swapitem(e.getClickedInventory());
                     p.getWorld().playSound(p.getLocation(),Sound.ITEM_BOTTLE_FILL_DRAGONBREATH,2,0.5f);
                 }
             }
@@ -369,9 +414,9 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 else
                 {
                     e.setCancelled(true);
-                    e.getInventory().setItem(second,e.getCursor());
+                    e.getClickedInventory().setItem(second,e.getCursor());
                     e.setCursor(new ItemStack(Material.AIR));
-                    b=swapitem(e.getInventory());
+                    swapitem(e.getClickedInventory());
                     p.getWorld().playSound(p.getLocation(),Sound.ITEM_BOTTLE_FILL_DRAGONBREATH,2,0.5f);
 
                 }
@@ -382,17 +427,17 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 {
                     e.setCancelled(true);
                     e.setCursor(e.getCurrentItem());
-                    e.getInventory().setItem(second,createUIitem(Material.IRON_AXE, " ", (short)64));
+                    e.getClickedInventory().setItem(second,createUIitem(Material.IRON_AXE, " ", (short)64));
                     swapitem(e.getInventory());
                 }
                 else
                 {
                     e.setCancelled(true);
                     ItemStack temp = e.getCursor();
-
+                    e.getClickedInventory().setItem(second,temp);
                     e.setCursor(e.getCurrentItem());
-                    e.getInventory().setItem(second,temp);
-                    b=swapitem(e.getInventory());
+
+                    swapitem(e.getInventory());
                     p.getWorld().playSound(p.getLocation(),Sound.ITEM_BOTTLE_FILL_DRAGONBREATH,2,0.5f);
                 }
             }
