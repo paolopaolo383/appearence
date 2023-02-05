@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-
+import org.checkerframework.checker.units.qual.C;
 
 
 import java.io.*;
@@ -144,11 +144,17 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
             ItemStack item = new ItemStack(appe,1);
             ItemMeta itemm = item.getItemMeta();
             String name =player.getInventory().getItemInMainHand().getItemMeta().getDisplayName();
-            String nameme =ChatColor.stripColor(name).split(" \\+")[0];
-            itemm.setLocalizedName(ChatColor.getLastColors(name)+"외형변경권<"+nameme+">");
+            String nameme;
+            if(name.contains(" +"))
+            {
+                nameme =ChatColor.stripColor(name).split(" \\+")[0];
+            }
+            else
+            {
+                nameme = name;
+            }
             itemm.setDisplayName(ChatColor.getLastColors(name)+"외형변경권<"+nameme+">");
             item.setItemMeta(itemm);
-            item.setDurability(itemsd.get(nameme));
             player.getInventory().addItem(item);
         }
         if(command.getName().equalsIgnoreCase("외형"))
@@ -238,7 +244,6 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
             {
                 in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
                 in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
-                consol.sendMessage("1++++"+String.valueOf(in.getItem(second).getDurability()));
                 return false;
             }
 
@@ -248,7 +253,6 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
                 {
                     in.setItem(product,combine(in.getItem(first),in.getItem(second)));
                     in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)3));
-                    consol.sendMessage("2++++"+String.valueOf(in.getItem(second).getDurability()));
                     return true;
                 }
 
@@ -257,13 +261,11 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
             {
                 in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
                 in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
-                consol.sendMessage("3++++"+String.valueOf(in.getItem(second).getDurability()));
                 return false;
             }
         }
         in.setItem(product,createUIitem(Material.IRON_AXE, " ", (short)64));
         in.setItem(53,createUIitem(Material.IRON_AXE, " ", (short)2));
-        consol.sendMessage("4++++"+String.valueOf(in.getItem(second).getDurability()));
         return false;
     }
     public Short getitemdurability(String name)
