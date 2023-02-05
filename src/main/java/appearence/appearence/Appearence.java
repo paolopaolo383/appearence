@@ -143,7 +143,6 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         {
             ItemStack item = new ItemStack(appe,1);
             ItemMeta itemm = item.getItemMeta();
-            itemm.setUnbreakable(true);
             String name =player.getInventory().getItemInMainHand().getItemMeta().getDisplayName();
             String nameme =ChatColor.stripColor(name).split(" \\+")[0];
             itemm.setLocalizedName(ChatColor.getLastColors(name)+"외형변경권<"+nameme+">");
@@ -191,19 +190,7 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         final ItemMeta meta = item.getItemMeta();
         meta.setUnbreakable(true);
         meta.addItemFlags(HIDE_ATTRIBUTES);
-        // Set the name of the item
-        meta.setDisplayName(name);
-
-        meta.setLore(Arrays.asList(lore));
-
-        item.setItemMeta(meta);
-
-        return item;
-    }
-    protected ItemStack createGuiItem(final Material material, final String name, final String... lore) {
-        final ItemStack item = new ItemStack(material, 1);
-        final ItemMeta meta = item.getItemMeta();
-
+        meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         // Set the name of the item
         meta.setDisplayName(name);
 
@@ -224,6 +211,9 @@ public final class Appearence extends JavaPlugin implements Listener, CommandExe
         item.setDurability(getitemdurability(name));
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setUnbreakable(true);
+        itemMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        itemMeta.addItemFlags(HIDE_ATTRIBUTES);
+
 
         item.setItemMeta(itemMeta);
         return item;
